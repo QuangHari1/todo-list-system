@@ -107,7 +107,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import Navbar from '../components/shared/Navbar.vue';
-import { tabs_content, templates } from '../constants/index.ts';
+import { tabs_content, templates } from '../constants/homeInfo';
 
 export default defineComponent({
   name: 'HomeSection',
@@ -122,7 +122,7 @@ export default defineComponent({
     };
 
     const resolveImagePath = (image: string) => {
-      return new URL(image, import.meta.url).href;
+      return new URL(image,import.meta.url).href;
     };
 
     return {

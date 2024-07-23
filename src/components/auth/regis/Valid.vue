@@ -1,12 +1,12 @@
 <template>
-  <div class="border-2 z-50 w-96 shadow-lg bg-white h-3/4 flex flex-col items-center border-gray-300 rounded-lg mt-8 absolute bottom-8 pt-2">
+  <div class="select-none border-2 z-50 w-96 shadow-lg bg-white h-9/10 flex flex-col items-center border-gray-300 rounded-lg bottom-10 absolute  pt-2" style="top:150px">
     <img src="../../../assets/img/atlassian.png" alt="atlassian" class="w-3/4 min-w-11 select-none px-0 py-10">
-    <div class="flex flex-col items-center w-full font-apple">
+    <div class="flex flex-col items-center w-full font-apple select-text">
       <span class="text-gray-800 text-center strong text-lg font-semibold">We've emailed you a code</span>
-      <div class="flex flex-col items-center mt-4 w-full">
+      <form @submit.prevent="handleValidate" class="flex flex-col items-center mt-4 w-full">
         <span class="list-none text-sm mb-0 font-apple w-3/4">To complete your account setup, enter the code we've sent to:</span>
         <div class="w-3/4 text-left mt-2">
-          <span class="font-apple font-bold">name@email.com</span>
+          <span class="font-apple font-bold">{{ email }}</span>
         </div>
         <div class="flex justify-between w-4/5 mt-4">
           <input
@@ -18,12 +18,15 @@
             @input="moveToNext($event, index)"
             @keydown.backspace="moveToPrev($event, index)"
             v-model="digit.value"
+            required
           />
         </div>
-        <router-link to="/author/regisform" class="bg-[#2d66e6] text-white rounded px-4 py-1 mt-4 w-3/4 hover:bg-[#1c4cb8] h-10 font-medium flex items-center justify-center">
-          Verify
-        </router-link>
-      </div>
+        <div v-if="errorMessage" class="text-red-500 mt-2 text-xs w-3/4 text-left font-apple flex-1">{{ errorMessage }}</div>
+        <button :disabled="loading" type="submit" class="select-none bg-[#2d66e6] text-white rounded px-4 py-1 mt-4 w-3/4 hover:bg-[#1c4cb8] h-10 font-medium flex items-center justify-center">
+          <span v-if="loading" class="loader"></span>
+          <span v-else>Verify</span>
+        </button>
+      </form>
       <div class="flex items-center mt-4 mb-0 space-x-2">
         <span class="list-none text-[#2f66e6] text-sm hover:underline cursor-pointer mb-0">Didn't receive an email? Resend email</span>
       </div>
@@ -39,10 +42,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue';
-
+import { defineComponent, reactive ,ref} from 'vue';
+import {useRegisAccountStore, useValidateOtpRegisStore} from '../../../stores/authStores/regisStore';
+import { useRouter } from 'vue-router';
 export default defineComponent({
-  name: 'Register',
+  name: 'validregister',
   setup() {
     const code = reactive([
       { value: '' },
@@ -52,6 +56,34 @@ export default defineComponent({
       { value: '' },
       { value: '' },
     ]);
+
+    const regisAccountStore = useRegisAccountStore();
+    const email = regisAccountStore.email?.toString() || '';
+    const router = useRouter();
+    const validregisStore = useValidateOtpRegisStore();
+    const errorMessage = ref('');
+    const loading = ref(false);
+
+
+    const handleValidate = async () => {
+      const otp = code.map((digit) => digit.value).join('');
+      loading.value = true;
+      errorMessage.value = '';
+      try {
+        console.log(email, otp);
+        await validregisStore.validateOtp(email, otp);
+        if (validregisStore.error) {
+          errorMessage.value = validregisStore.error;
+        } else {
+          console.log('Otp successful.');
+          router.push('/author/regisform');
+        }
+      } catch (error: any) {
+        errorMessage.value = 'An error occurred while requesting password reset.';
+      } finally {
+        loading.value = false;
+      }
+    };
 
     const moveToNext = (event: Event, index: number) => {
       const input = event.target as HTMLInputElement;
@@ -80,7 +112,11 @@ export default defineComponent({
     };
 
     return {
+      email,
+      errorMessage,
+      loading,
       code,
+      handleValidate,
       moveToNext,
       moveToPrev,
     };
@@ -109,7 +145,23 @@ export default defineComponent({
   margin: 0;
 }
 
-.code-input[type='number'] {
-  -moz-appearance: textfield;
+
+
+.loader {
+  border: 2px solid #f3f3f3; /* Light grey */
+  border-top: 2px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.select-none {
+  user-select: none;
 }
 </style>

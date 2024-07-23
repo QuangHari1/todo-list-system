@@ -1,104 +1,82 @@
 <template>
-    <a-layout style="min-height: 100vh">
-      <a-layout-sider
-        :width="siderWidth"
-        collapsible
-        :theme="siderTheme"
-        :style="{ position: 'relative' }"
-      >
-        <div class="logo" />
-        <span> Project Name</span>
-        <span> Project type</span>
-        <a-menu v-model:selectedKeys="selectedKeys" mode="inline" :theme="menuTheme">
-          <a-sub-menu key="sub1">
-            <template #title>
-              <span>
-                <span>PLANNING</span>
-              </span>
-            </template>
-            <a-menu-item key="3">Backlog</a-menu-item>
-            <a-menu-item key="4">Board</a-menu-item>
-          </a-sub-menu>
-          <a-menu-item key="9">
-            <SettingOutlined />
-            <span>Project setting</span>
-          </a-menu-item>
-        </a-menu>
-        <div class="resizer" @mousedown="startResizing"></div>
-      </a-layout-sider>
-      <a-layout :style="{ marginLeft: siderWidth + 'px' }">
-        <a-layout-header style="background: #fff; padding: 0" />
-        <a-layout-content style="margin: 0 16px">
-          <a-breadcrumb style="margin: 16px 0">
-            <a-breadcrumb-item>User</a-breadcrumb-item>
-            <a-breadcrumb-item>Bill</a-breadcrumb-item>
-          </a-breadcrumb>
-          <div :style="{ padding: '24px', background: '#fff', minHeight: '360px' }">
-            Bill is a cat.
-          </div>
-        </a-layout-content>
-      </a-layout>
-    </a-layout>
-  </template>
-  
-  <script lang="ts" setup>
-  import { ref, onMounted, onBeforeUnmount } from 'vue';
-  import { SettingOutlined } from '@ant-design/icons-vue';
-  
-  const collapsed = ref<boolean>(false);
-  const selectedKeys = ref<string[]>(['1']);
-  const siderTheme = ref<'dark' | 'light'>('light');
-  const menuTheme = ref<'dark' | 'light'>('light');
-  const siderWidth = ref<number>(200);
-  
-  let isResizing = false;
-  
-  const startResizing = (event: MouseEvent) => {
-    isResizing = true;
-    document.addEventListener('mousemove', resizeSider);
-    document.addEventListener('mouseup', stopResizing);
-  };
-  
-  const resizeSider = (event: MouseEvent) => {
-    if (isResizing) {
-      siderWidth.value = Math.max(event.clientX, 100); // Ensure sider has a minimum width of 100px
+    <div class="mt-20 px-10 py-0 ml-10">
+        <div class="h-[40px] flex justify-between">
+            <span class="font-ui text-2xl font-semibold opacity-80">Projects</span>
+            <div class="flex">
+                <button class="h-[36px] bg-blue-600 text-white hover:bg-blue-700 px-3 mr-1 rounded">Create project</button>
+                <button class="h-[36px] bg-gray-100 text-black hover:bg-gray-300 px-3 rounded">Template</button>
+            </div>
+        </div>
+        <div class="mt-6">
+            <div class="relative inline-block mr-6">
+                <input
+                    type="text"
+                    v-model="searchQuery"
+                    placeholder="Search projects"
+                    class="custom-input w-[224px] min-h-[40px] border border-gray-500 rounded py-3 font-light pl-2 pr-10 placeholder-gray-400 hover:border-blue-600 "
+                />
+                <i v-if="searchQuery"
+                   @click="clearSearch"
+                   class="fa-solid fa-x absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 cursor-pointer"></i>
+                <i v-else
+                   class="fa-solid fa-magnifying-glass absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"></i>
+            </div>
+            <div class="relative inline-block">
+                <input
+                    type="text"
+                    @focus="toggleDropdown(true)"
+                    @blur="toggleDropdown(false)"
+                    placeholder="Filter by product"
+                    class=" custom-input w-[200px] min-h-[40px] border border-gray-500 rounded py-3 font-light pl-2 pr-10 placeholder-gray-400"
+                />
+                <i class="fa-solid fa-chevron-down absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"></i>
+
+                <!-- Dropdown Menu -->
+                <div v-show="isDropdownVisible" class="absolute z-10 mt-2 w-[200px] bg-white border border-gray-300 rounded shadow-lg">
+                    <div class=" text-sm font-normal font-apple">
+                        <label class="items-center block mt-2 py-2 border-l-4 border-white hover:bg-gray-200 hover:border-l-4 hover:border-blue-500 transition-all">
+                            <input type="checkbox" v-model="selectedFilters" value="business projects" class="ml-3"/>
+                            <span class="ml-2 text-gray-700">Business Projects</span>
+                        </label>
+                        <label class="block mb-2 py-2 border-l-4 border-white hover:bg-gray-200 hover:border-l-4 hover:border-blue-500 transition-all">
+                            <input type="checkbox" v-model="selectedFilters" value="software projects" class="ml-3"/>
+                            <span class="ml-2 text-gray-700">Software Projects</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script lang="ts">
+import { ref } from 'vue';
+import "@fortawesome/fontawesome-free/css/all.css";
+
+export default {
+    setup() {
+        const searchQuery = ref('');
+        const isDropdownVisible = ref(false);
+        const selectedFilters = ref<string[]>([]);
+
+        const clearSearch = () => {
+            searchQuery.value = '';
+        };
+
+        const toggleDropdown = (show: boolean) => {
+            isDropdownVisible.value = show;
+        };
+
+        return { searchQuery, clearSearch, isDropdownVisible, toggleDropdown, selectedFilters };
     }
-  };
-  
-  const stopResizing = () => {
-    isResizing = false;
-    document.removeEventListener('mousemove', resizeSider);
-    document.removeEventListener('mouseup', stopResizing);
-  };
-  
-  onMounted(() => {
-    document.addEventListener('mouseup', stopResizing);
-  });
-  
-  onBeforeUnmount(() => {
-    document.removeEventListener('mouseup', stopResizing);
-  });
-  </script>
-  
-  <style scoped>
-  .logo {
-    height: 32px;
-    margin: 16px;
-    background: rgba(255, 255, 255, 0.3);
-  }
-  
-  .site-layout-background {
-    background: #fff;
-  }
-  
-  .resizer {
-    width: 5px;
-    cursor: ew-resize;
-    background-color: rgba(0, 0, 0, 0.2);
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-  }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.custom-input:focus {
+    border-color: #3b82f6; /* border-blue-600 */
+    outline: none;
+    border-width: 1px;
+    box-shadow: inset 0 0 0 1px #2563eb;
+}
+</style>

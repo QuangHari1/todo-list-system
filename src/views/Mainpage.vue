@@ -1,11 +1,12 @@
 <template>
-    <!-- <MainNavbar /> -->
+    <MainNavbar />
     <router-view />
 </template>
 
 <script lang="ts">
-import MainNavbar from '../components/mainpage/MainNavbar.vue';
+import MainNavbar from '../components/shared/MainNavbar.vue';
+
 export default {
-//   components: {MainNavbar},
+  components: {MainNavbar},
 };
 </script>
